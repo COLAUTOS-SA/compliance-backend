@@ -8,6 +8,14 @@ class FileNetworkService {
   static smbUser = process.env.SMB_USER;
   static smbPass = process.env.SMB_PASS;
 
+  static sanitizePathPart(value, fallback = "archivo") {
+    return String(value || fallback)
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 180) || fallback;
+  }
+
   /**
    * 🔐 Verificar conexión SMB
    */
@@ -80,23 +88,26 @@ class FileNetworkService {
       const remoteDir = `${raiz}/${subPath}`;
 
       // 🔹 nombre final (evitar colisiones)
-      const finalName = `${Date.now()}_${fileName}`;
+      const finalName = `${Date.now()}_${this.sanitizePathPart(fileName)}`;
 
       const remoteFullPath = `${remoteDir}/${finalName}`;
 
       // 🔹 archivo temporal local
       const tempPath = path.join(os.tmpdir(), finalName);
 
-      fs.writeFileSync(tempPath, buffer);
+      try {
+        fs.writeFileSync(tempPath, buffer);
 
-      // 🔹 crear carpeta (intenta)
-      await this.createDirectoryRecursive(remoteDir);
+        // 🔹 crear carpeta (intenta)
+        await this.createDirectoryRecursive(remoteDir);
 
-      // 🔹 subir archivo
-      await this.uploadFile(tempPath, remoteFullPath);
-
-      // 🔹 eliminar temporal
-      fs.unlinkSync(tempPath);
+        // 🔹 subir archivo
+        await this.uploadFile(tempPath, remoteFullPath);
+      } finally {
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      }
 
       console.log("📁 Archivo subido a CTERA:", remoteFullPath);
 

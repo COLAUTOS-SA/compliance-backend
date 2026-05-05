@@ -64,6 +64,35 @@ class FileNetworkAdobeService {
       throw error;
     }
   }
+
+  /**
+   * Guardar archivo de respuesta cargado por la oficial de cumplimiento
+   */
+  static async saveComplianceResponse(idSolicitud, fileBuffer, nombreOriginal) {
+    try {
+      const result = await FileNetworkService.saveFile(
+        idSolicitud,
+        idSolicitud,
+        fileBuffer,
+        "compliance",
+        `SOLICITUD_${idSolicitud}/RESPUESTA_OFICIAL`,
+        "respuesta_oficial",
+        nombreOriginal,
+      );
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        fileUrl: result.path,
+        fileName: result.fileName,
+      };
+    } catch (error) {
+      console.error("Error guardando respuesta oficial en CTERA:", error.message);
+      throw error;
+    }
+  }
 }
 
 module.exports = FileNetworkAdobeService;

@@ -26,16 +26,17 @@ const SolicitudModel = {
     conocimiento_contrapartes,
     id_ult_estado,
   }) {
-    console.log(id_contraparte)
+    const estadoInicial = id_ult_estado || 1;
     const [result] = await pool.query(
-      "INSERT INTO solicitud (id, id_contraparte, fecha_ult_actualizacion, fecha_actual, conocimiento_contrapartes, id_ult_estado) " +
-        "VALUES (NULL, ?, ?, ?, ?, ?)",
+      "INSERT INTO solicitud (id, id_contraparte, fecha_ult_actualizacion, fecha_actual, conocimiento_contrapartes, id_ult_estado, id_estado_solicitud) " +
+        "VALUES (NULL, ?, ?, ?, ?, ?, ?)",
       [
         id_contraparte,
         fecha_ult_actualizacion,
         fecha_actual,
         conocimiento_contrapartes,
-        id_ult_estado,
+        estadoInicial,
+        estadoInicial,
       ]
     );
     return result.insertId;
@@ -62,6 +63,22 @@ const SolicitudModel = {
         id_ult_estado,
         id,
       ]
+    );
+    return this.getById(id);
+  },
+
+  async updateEstado(id, idEstadoSolicitud) {
+    await pool.query(
+      "UPDATE solicitud SET id_estado_solicitud = ?, id_ult_estado = ?, fecha_ult_actualizacion = NOW() WHERE id = ?",
+      [idEstadoSolicitud, idEstadoSolicitud, id]
+    );
+    return this.getById(id);
+  },
+
+  async updateArchivoRespuesta(id, archivoRespuestaRuta) {
+    await pool.query(
+      "UPDATE solicitud SET archivo_respuesta_ruta = ?, fecha_ult_actualizacion = NOW() WHERE id = ?",
+      [archivoRespuestaRuta, id]
     );
     return this.getById(id);
   },
