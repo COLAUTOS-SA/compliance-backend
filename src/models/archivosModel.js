@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { nowInBogotaForMySQL } = require("../utils/dateTime");
 
 const ArchivosModel = {
   // ✅ Crear archivo: SIEMPRE sin concepto (lo pone la oficial después)
@@ -34,15 +35,16 @@ const ArchivosModel = {
   // ✅ Revisión oficial: actualiza estado + concepto (por archivo)
   async updateRevision(idArchivo, data) {
     const { id_estado_archivo, concepto, id_usuario_concepto = null } = data;
+    const now = nowInBogotaForMySQL();
 
     const [result] = await pool.query(
       `UPDATE archivos
        SET id_estado_archivo = ?,
            concepto = ?,
-           fecha_concepto = NOW(),
+           fecha_concepto = ?,
            id_usuario_concepto = ?
        WHERE id = ?`,
-      [id_estado_archivo, concepto || null, id_usuario_concepto, idArchivo]
+      [id_estado_archivo, concepto || null, now, id_usuario_concepto, idArchivo]
     );
 
     return { affectedRows: result.affectedRows };

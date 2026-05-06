@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { nowInBogotaForMySQL } = require("../utils/dateTime");
 
 const SolicitudModel = {
   async getAll() {
@@ -68,17 +69,19 @@ const SolicitudModel = {
   },
 
   async updateEstado(id, idEstadoSolicitud) {
+    const now = nowInBogotaForMySQL();
     await pool.query(
-      "UPDATE solicitud SET id_estado_solicitud = ?, id_ult_estado = ?, fecha_ult_actualizacion = NOW() WHERE id = ?",
-      [idEstadoSolicitud, idEstadoSolicitud, id]
+      "UPDATE solicitud SET id_estado_solicitud = ?, id_ult_estado = ?, fecha_ult_actualizacion = ? WHERE id = ?",
+      [idEstadoSolicitud, idEstadoSolicitud, now, id]
     );
     return this.getById(id);
   },
 
   async updateArchivoRespuesta(id, archivoRespuestaRuta) {
+    const now = nowInBogotaForMySQL();
     await pool.query(
-      "UPDATE solicitud SET archivo_respuesta_ruta = ?, fecha_ult_actualizacion = NOW() WHERE id = ?",
-      [archivoRespuestaRuta, id]
+      "UPDATE solicitud SET archivo_respuesta_ruta = ?, fecha_ult_actualizacion = ? WHERE id = ?",
+      [archivoRespuestaRuta, now, id]
     );
     return this.getById(id);
   },

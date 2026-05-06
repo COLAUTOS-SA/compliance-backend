@@ -3,6 +3,7 @@ const pool = require("../config/db");
 const AdobeSignService = require("../services/adobeSignService");
 const AdobeAgreementModel = require("../models/adobeAgreementModel");
 const FileNetworkAdobeService = require("../services/fileNetworkAdobeService");
+const { nowInBogotaForMySQL } = require("../utils/dateTime");
 
 const router = express.Router();
 const adobeSign = new AdobeSignService();
@@ -225,8 +226,8 @@ router.post("/webhook", async (req, res) => {
 
       if (idSolicitud && pdfUrl) {
         await pool.query(
-          "UPDATE solicitud SET conocimiento_contrapartes = ?, fecha_ult_actualizacion = NOW() WHERE id = ?",
-          [pdfUrl, idSolicitud],
+          "UPDATE solicitud SET conocimiento_contrapartes = ?, fecha_ult_actualizacion = ? WHERE id = ?",
+          [pdfUrl, nowInBogotaForMySQL(), idSolicitud],
         );
       }
     } else if (agreementId && eventCode === "AGREEMENT_REJECTED") {
