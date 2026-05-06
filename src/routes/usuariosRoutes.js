@@ -7,6 +7,8 @@ router.get("/", UsuariosController.getAll);
 router.get("/:id", UsuariosController.getById);
 router.post("/", UsuariosController.create);
 router.put("/:id", UsuariosController.update);
+router.patch("/:id/status", UsuariosController.updateStatus);
+router.patch("/:id/password", UsuariosController.updatePassword);
 router.delete("/:id", UsuariosController.remove);
 
 // login

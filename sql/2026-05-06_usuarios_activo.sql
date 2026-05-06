@@ -1,0 +1,6 @@
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS activo TINYINT(1) NOT NULL DEFAULT 1 AFTER id_rol;
+
+UPDATE usuarios
+SET activo = 1
+WHERE activo IS NULL;

@@ -34,6 +34,14 @@ const UsuariosController = {
   async create(req, res) {
     try {
       const { nombre, correo, contrasena, id_rol } = req.body;
+
+      if (!nombre || !correo || !contrasena || !id_rol) {
+        return res.status(400).json({
+          success: false,
+          message: "nombre, correo, contrasena e id_rol son obligatorios",
+        });
+      }
+
       const id = await UsuariosModel.create({
         nombre,
         correo,
@@ -53,6 +61,14 @@ const UsuariosController = {
   async update(req, res) {
     try {
       const { nombre, correo, id_rol } = req.body;
+
+      if (!nombre || !correo || !id_rol) {
+        return res.status(400).json({
+          success: false,
+          message: "nombre, correo e id_rol son obligatorios",
+        });
+      }
+
       const usuario = await UsuariosModel.update(req.params.id, {
         nombre,
         correo,
@@ -64,6 +80,63 @@ const UsuariosController = {
       res
         .status(500)
         .json({ success: false, message: "Error al actualizar usuario" });
+    }
+  },
+
+  async updateStatus(req, res) {
+    try {
+      const { activo } = req.body;
+
+      if (typeof activo !== "boolean") {
+        return res.status(400).json({
+          success: false,
+          message: "activo debe ser booleano",
+        });
+      }
+
+      const usuario = await UsuariosModel.updateStatus(req.params.id, activo);
+      if (!usuario) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Usuario no encontrado" });
+      }
+
+      res.json({ success: true, data: usuario });
+    } catch (err) {
+      console.error("update usuario status error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Error al cambiar estado" });
+    }
+  },
+
+  async updatePassword(req, res) {
+    try {
+      const { contrasena } = req.body;
+
+      if (!contrasena || String(contrasena).length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: "La nueva contrasena debe tener al menos 8 caracteres",
+        });
+      }
+
+      const usuario = await UsuariosModel.updatePassword(
+        req.params.id,
+        String(contrasena),
+      );
+      if (!usuario) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Usuario no encontrado" });
+      }
+
+      res.json({ success: true, data: usuario });
+    } catch (err) {
+      console.error("update usuario password error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Error al cambiar contrasena" });
     }
   },
 
@@ -81,7 +154,6 @@ const UsuariosController = {
 
   // login sencillo (sin JWT, puedes agregarlo luego)
   async login(req, res) {
-    console.log("hola")
     try {
       const { correo, contrasena } = req.body;
 
@@ -89,6 +161,12 @@ const UsuariosController = {
       const usuario = await UsuariosModel.getByCorreo(correo);
 
       if (usuario) {
+        if (Number(usuario.activo ?? 1) !== 1) {
+          return res
+            .status(403)
+            .json({ success: false, message: "Usuario deshabilitado" });
+        }
+
         const match = await UsuariosModel.comparePassword(
           contrasena,
           usuario.contrasena
